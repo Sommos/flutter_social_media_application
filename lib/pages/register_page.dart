@@ -1,3 +1,4 @@
+import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
 import "../components/my_button.dart";
@@ -19,6 +20,45 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailTextController = TextEditingController();
   final passwordTextController = TextEditingController();
   final confirmPasswordTextController = TextEditingController();
+
+  void signUp() async {
+    // show loading dialog
+    showDialog(
+      context: context, 
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    // check if passwords match
+    if(passwordTextController.text != confirmPasswordTextController.text) {
+      Navigator.pop(context);
+      displayMessage("Passwords do not match");
+      return;
+    }
+
+    try{
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailTextController.text,
+        password: passwordTextController.text,
+      );
+      // hide loading dialog
+      if(context.mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      // hide loading dialog
+      Navigator.pop(context);
+      // display error message to user
+      displayMessage(e.code);
+    }
+  }
+
+  void displayMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(message),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +115,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 10.0),
 
                 // login button
-                MyButton(onTap: (){}, text: "Sign Up"),
+                MyButton(
+                  onTap: (){}, 
+                  text: "Sign Up"
+                ),
 
                 const SizedBox(height: 10.0),
 

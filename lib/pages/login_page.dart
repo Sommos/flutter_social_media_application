@@ -21,9 +21,35 @@ class _LoginPageState extends State<LoginPage> {
   final passwordTextController = TextEditingController();
 
   void signIn() async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
+    // show loading dialog
+    showDialog(
+      context: context, 
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    // try and sign user in
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: emailTextController.text,
       password: passwordTextController.text,
+      );
+      // hide loading dialog
+      if(context.mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      // hide loading dialog
+      Navigator.pop(context);
+      // display error message to user
+      displayMessage(e.code);
+    }
+  }
+
+  void displayMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(message),
+      ),
     );
   }
 
