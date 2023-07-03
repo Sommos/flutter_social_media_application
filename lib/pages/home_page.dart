@@ -3,6 +3,7 @@ import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
 import "../components/my_text_field.dart";
+import "../components/my_post.dart";
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,7 +21,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void postMessage() {
-
+    if (textController.text.isNotEmpty) {
+      // store message in firestore
+      FirebaseFirestore.instance.collection('User Posts').add({
+        'UserEmail': currentUser.email,
+        'Message': textController.text,
+        'TimeStamp': Timestamp.now(),
+      });
+    }
+    // clear text field
+    setState(() {
+      textController.clear();
+    });
   }
   
   @override
@@ -28,7 +40,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        title: const Text("Home Page"),
+        title: const Text("Sendeloa"),
         backgroundColor: Colors.grey[900],
         centerTitle: true,
         actions: [
@@ -46,18 +58,29 @@ class _HomePageState extends State<HomePage> {
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
                   .collection("User Posts")
-                  .orderBy("Timestamp", descending: false)
+                  .orderBy("TimeStamp", descending: false)
                   .snapshots(),
                 builder: (context, snapshot) {
                   if(snapshot.hasData) {
                     return ListView.builder(
+                      itemCount: snapshot.data!.docs.length,
                       itemBuilder: (context, index) {
                         // get message
                         final post = snapshot.data!.docs[index];
-                        return
+                        return MyPost(
+                          message: post['Message'], 
+                          user: post['UserEmail'], 
+                        )
                       }
                     );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text("Error: ${snapshot.error}"),
+                    );
                   }
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 },
               ),
             ),
@@ -81,7 +104,12 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             // logged in as
-            Text("Logged in as ${currentUser.email!}"),
+            Text(
+              "Logged in as ${currentUser.email!}", 
+              style: TextStyle(color: Colors.grey)
+            ),
+
+            const SizedBox(height: 50.0,),
           ],
         ),
       ),
