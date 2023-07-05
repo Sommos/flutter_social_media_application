@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage> {
         'UserEmail': currentUser.email,
         'Message': textController.text,
         'TimeStamp': Timestamp.now(),
+        'Likes': [],
       });
     }
     // clear text field
@@ -70,7 +71,9 @@ class _HomePageState extends State<HomePage> {
                         return MyPost(
                           message: post['Message'], 
                           user: post['UserEmail'], 
-                        )
+                          postId: post.id,
+                          likes: List<String>.from(post['Likes'] ?? []),
+                        );
                       }
                     );
                   } else if (snapshot.hasError) {
